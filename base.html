@@ -1,0 +1,550 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>CRM – Base Indépendante</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+<style>
+body{font-family:Arial,sans-serif;margin:0;background:#f4f6fb;color:#0b1220}
+header{background:#fff;border-bottom:1px solid #d9dee7;padding:12px;position:sticky;top:0;z-index:40}
+.wrap{max-width:1700px;margin:auto;padding:12px}
+.card{background:#fff;border:1px solid #d9dee7;border-radius:12px;padding:12px;margin-bottom:12px;box-shadow:0 8px 24px rgba(0,0,0,.06)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+button,input,select,textarea{padding:9px;font-size:14px}
+button{border-radius:10px;border:1px solid #d9dee7;background:#fff;cursor:pointer}
+.primary{background:#0b57d0;color:#fff;border-color:#0b57d0;font-weight:700}
+.danger{background:#ef4444;color:#fff;border-color:#ef4444;font-weight:700}
+.green{background:#16a34a;color:#fff;border-color:#16a34a;font-weight:700}
+.orange{background:#f59e0b;color:#fff;border-color:#f59e0b;font-weight:700}
+.tableWrap{max-height:65vh;overflow:auto;border:1px solid #d9dee7;border-radius:12px}
+table{width:100%;border-collapse:collapse}
+th,td{border:1px solid #e6eaf0;padding:6px;font-size:13px;vertical-align:top}
+th{background:#eef3ff;position:sticky;top:0}
+.hidden{display:none}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px}
+.map{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px}
+.preview{max-height:180px;overflow:auto;border:1px solid #d9dee7;border-radius:12px;padding:8px;background:#fafafa;font-size:12px;white-space:pre-wrap}
+.pill{border:1px solid #d9dee7;border-radius:999px;padding:6px 10px;font-size:12px;background:#f8fafc}
+.small{font-size:12px;color:#556}
+label.small{display:block;margin-bottom:4px}
+textarea{width:100%;min-height:90px;border:1px solid #ccd4ea;border-radius:10px}
+input,select{border:1px solid #ccd4ea;border-radius:10px;width:100%}
+.actionsTop{display:flex;gap:8px;flex-wrap:wrap}
+.status-pill{padding:4px 8px;border-radius:999px;font-size:11px;font-weight:700;display:inline-block}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="row" style="justify-content:space-between">
+    <div class="row">
+      <b>CRM – BASE INDÉPENDANTE</b>
+      <span class="pill">Collection : <b>crm_base_production_independante</b></span>
+      <span class="pill">Total : <b id="total">0</b></span>
+      <span class="pill" id="rangeLabel">1 à 100</span>
+      <span class="pill small" id="fb">Firebase…</span>
+    </div>
+
+    <div class="actionsTop">
+      <button onclick="location.href='index.html'">Index</button>
+      <button class="primary" onclick="location.href='reporting.html'">Statistiques Lead</button>
+      <button class="green" onclick="location.href='reportingvicidial.html'">Statistiques Production</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="card row">
+    <button class="primary" onclick="openForm()">Ajouter</button>
+    <button onclick="openImport()">Importer TXT / XLS / CSV</button>
+    <button onclick="exportCSV()">Exporter CSV</button>
+    <button class="danger" onclick="deleteAll()">Tout supprimer</button>
+
+    <select id="rangeSelect" onchange="applyRange()" style="max-width:160px">
+      <option value="0">1 à 100</option>
+      <option value="100">101 à 200</option>
+      <option value="200">201 à 300</option>
+      <option value="300">301 à 400</option>
+      <option value="400">401 à 500</option>
+      <option value="500">501 à 600</option>
+      <option value="600">601 à 700</option>
+      <option value="700">701 à 800</option>
+      <option value="800">801 à 900</option>
+      <option value="900">901 à 1000</option>
+    </select>
+  </div>
+
+  <div class="card tableWrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Nom</th>
+          <th>Prénom</th>
+          <th>Adresse</th>
+          <th>Ville</th>
+          <th>CP</th>
+          <th>Fixe</th>
+          <th>Mobile</th>
+          <th>RDV</th>
+          <th>Rappel</th>
+          <th>Statut</th>
+          <th>Rep1</th>
+          <th>Rep2</th>
+          <th>Commentaire</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+
+  <!-- FORM -->
+  <div id="formCard" class="card hidden">
+    <b id="formTitle">Ajouter</b>
+
+    <div class="grid" style="margin-top:10px">
+      <input id="f_nom" placeholder="Nom">
+      <input id="f_prenom" placeholder="Prénom">
+      <input id="f_adresse" placeholder="Adresse">
+      <input id="f_ville" placeholder="Ville">
+      <input id="f_cp" placeholder="Code postal">
+      <input id="f_fixe" placeholder="Fixe">
+      <input id="f_mobile" placeholder="Mobile">
+      <input id="f_rdv" type="date">
+      <input id="f_rappel" type="date">
+
+      <select id="f_statut">
+        <option>Hors cible</option>
+        <option>Non éligible</option>
+        <option>Pas intéressé</option>
+        <option>À rappeler</option>
+        <option>Sonnerie libre</option>
+        <option>Répondeur</option>
+        <option>Injoignable permanent</option>
+        <option>Ok lead</option>
+        <option>Rdv ok</option>
+        <option>À suivre de près</option>
+        <option>À ne plus appeler</option>
+        <option>Occupé</option>
+        <option>Faux numéro</option>
+      </select>
+
+      <input id="f_rep1" placeholder="Réponse 1">
+      <input id="f_rep2" placeholder="Réponse 2">
+    </div>
+
+    <div style="margin-top:10px">
+      <textarea id="f_commentaire" placeholder="Commentaire"></textarea>
+    </div>
+
+    <div class="row" style="margin-top:10px">
+      <button class="primary" onclick="save()">Enregistrer</button>
+      <button onclick="closeForm()">Annuler</button>
+    </div>
+  </div>
+
+  <!-- IMPORT -->
+  <div id="importCard" class="card hidden">
+    <b>Import TXT / CSV / XLSX avec mapping manuel</b>
+
+    <div class="row" style="margin-top:10px">
+      <div>
+        <label class="small">Format</label>
+        <select id="fmt">
+          <option value="csv">CSV</option>
+          <option value="txt">TXT</option>
+          <option value="xls">XLS / XLSX</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="small">Max import</label>
+        <input id="limitImport" type="number" value="500" min="1" style="width:110px">
+      </div>
+
+      <div>
+        <label class="small">TXT séparateur</label>
+        <select id="txtSep">
+          <option value="auto">Auto</option>
+          <option value="tab">Tab</option>
+          <option value=";">;</option>
+          <option value=",">,</option>
+          <option value="|">|</option>
+          <option value="space">Espaces</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="small">TXT avec en-têtes</label>
+        <select id="txtHasHeader">
+          <option value="yes">Oui</option>
+          <option value="no">Non</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:10px">
+      <input type="file" id="file">
+      <button onclick="loadFile()">Charger</button>
+      <span id="importInfo" class="small"></span>
+    </div>
+
+    <div id="mappingBox" class="map" style="margin-top:10px"></div>
+
+    <div class="row" style="margin-top:10px">
+      <button class="primary" onclick="validateImport()">Valider import</button>
+      <button onclick="closeImport()">Fermer</button>
+    </div>
+
+    <div class="preview" id="preview" style="margin-top:10px">Aperçu…</div>
+  </div>
+
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
+import {
+  getFirestore, collection, addDoc, updateDoc, deleteDoc, doc,
+  onSnapshot, serverTimestamp, getDocs, query, limit
+} from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+
+const app = initializeApp({
+  apiKey:"AIzaSyA-G8P5NokxI6ZaIOMroQrH4x8mp_Q2dgg",
+  authDomain:"axokit-crm-ecoles-e56ab.firebaseapp.com",
+  projectId:"axokit-crm-ecoles-e56ab"
+});
+const db = getFirestore(app);
+
+const COLLECTION = "crm_base_production_independante";
+const colRef = collection(db, COLLECTION);
+
+const $ = id => document.getElementById(id);
+const clean = v => (v ?? "").toString().trim();
+const esc = s => (s ?? "").toString()
+  .replace(/&/g,"&amp;")
+  .replace(/</g,"&lt;")
+  .replace(/>/g,"&gt;")
+  .replace(/"/g,"&quot;");
+
+let ALL = [];
+let START = 0;
+let LIMITN = 100;
+let EDIT_ID = null;
+
+let importHeaders = [];
+let importRows = [];
+
+const targetFields = [
+  "nom","prenom","adresse","ville","cp","fixe","mobile",
+  "rdv","rappel","statut","rep1","rep2","commentaire"
+];
+
+function statusColor(status){
+  const map = {
+    "Hors cible":"#6b7280",
+    "Non éligible":"#ef4444",
+    "Pas intéressé":"#f97316",
+    "À rappeler":"#f59e0b",
+    "Sonnerie libre":"#60a5fa",
+    "Répondeur":"#8b5cf6",
+    "Injoignable permanent":"#7c3aed",
+    "Ok lead":"#16a34a",
+    "Rdv ok":"#059669",
+    "À suivre de près":"#0ea5e9",
+    "À ne plus appeler":"#991b1b",
+    "Occupé":"#eab308",
+    "Faux numéro":"#dc2626"
+  };
+  return map[status] || "#64748b";
+}
+
+$("fb").textContent = "Firebase…";
+
+onSnapshot(colRef, s => {
+  ALL = s.docs.map(d => ({ id:d.id, ...d.data() }));
+  $("total").textContent = ALL.length;
+  $("fb").textContent = "Firebase OK";
+  render();
+});
+
+function render(){
+  const tb = $("tbody");
+  const slice = ALL.slice(START, START + LIMITN);
+
+  tb.innerHTML = slice.map(x => `
+    <tr>
+      <td>${esc(x.nom)}</td>
+      <td>${esc(x.prenom)}</td>
+      <td>${esc(x.adresse)}</td>
+      <td>${esc(x.ville)}</td>
+      <td>${esc(x.cp)}</td>
+      <td>${esc(x.fixe)}</td>
+      <td>${esc(x.mobile)}</td>
+      <td>${esc(x.rdv)}</td>
+      <td>${esc(x.rappel)}</td>
+      <td><span class="status-pill" style="background:${statusColor(x.statut)}20;color:${statusColor(x.statut)}">${esc(x.statut)}</span></td>
+      <td>${esc(x.rep1)}</td>
+      <td>${esc(x.rep2)}</td>
+      <td>${esc(x.commentaire)}</td>
+      <td>
+        <button onclick="editRow('${x.id}')">Modifier</button>
+        <button onclick="delRow('${x.id}')">Supprimer</button>
+      </td>
+    </tr>
+  `).join("") || `<tr><td colspan="14" class="small">Vide</td></tr>`;
+}
+
+window.applyRange = () => {
+  START = parseInt($("rangeSelect").value || "0", 10);
+  $("rangeLabel").textContent = (START + 1) + " à " + (START + 100);
+  render();
+};
+
+window.openForm = () => {
+  EDIT_ID = null;
+  $("formTitle").textContent = "Ajouter";
+  clearForm();
+  $("formCard").classList.remove("hidden");
+};
+
+window.closeForm = () => {
+  $("formCard").classList.add("hidden");
+};
+
+function clearForm(){
+  [
+    "nom","prenom","adresse","ville","cp","fixe","mobile",
+    "rdv","rappel","rep1","rep2","commentaire"
+  ].forEach(k => $("f_" + k).value = "");
+  $("f_statut").value = "Hors cible";
+}
+
+window.editRow = id => {
+  const x = ALL.find(a => a.id === id);
+  if(!x) return;
+  EDIT_ID = id;
+  $("formTitle").textContent = "Modifier";
+
+  ["nom","prenom","adresse","ville","cp","fixe","mobile","rdv","rappel","rep1","rep2","commentaire"]
+    .forEach(k => $("f_" + k).value = x[k] || "");
+
+  $("f_statut").value = x.statut || "Hors cible";
+  $("formCard").classList.remove("hidden");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+};
+
+window.save = async () => {
+  const o = {
+    nom: clean(f_nom.value),
+    prenom: clean(f_prenom.value),
+    adresse: clean(f_adresse.value),
+    ville: clean(f_ville.value),
+    cp: clean(f_cp.value),
+    fixe: clean(f_fixe.value),
+    mobile: clean(f_mobile.value),
+    rdv: clean(f_rdv.value),
+    rappel: clean(f_rappel.value),
+    statut: f_statut.value,
+    rep1: clean(f_rep1.value),
+    rep2: clean(f_rep2.value),
+    commentaire: clean(f_commentaire.value),
+    updatedAt: serverTimestamp()
+  };
+
+  if(EDIT_ID){
+    await updateDoc(doc(db, COLLECTION, EDIT_ID), o);
+  } else {
+    await addDoc(colRef, { ...o, createdAt: serverTimestamp() });
+  }
+
+  closeForm();
+};
+
+window.delRow = async id => {
+  if(confirm("Supprimer cette fiche ?")){
+    await deleteDoc(doc(db, COLLECTION, id));
+  }
+};
+
+window.deleteAll = async () => {
+  if(prompt("Mot de passe") !== "admin2026") return;
+  if(!confirm("SUPPRIMER TOUTE LA BASE ?")) return;
+
+  while(true){
+    const s = await getDocs(query(colRef, limit(500)));
+    if(s.empty) break;
+    for(const d of s.docs){
+      await deleteDoc(doc(db, COLLECTION, d.id));
+    }
+  }
+};
+
+window.exportCSV = () => {
+  let csv = "nom;prenom;adresse;ville;cp;fixe;mobile;rdv;rappel;statut;rep1;rep2;commentaire\n";
+  ALL.forEach(x => {
+    csv += [
+      x.nom || "", x.prenom || "", x.adresse || "", x.ville || "", x.cp || "",
+      x.fixe || "", x.mobile || "", x.rdv || "", x.rappel || "",
+      x.statut || "", x.rep1 || "", x.rep2 || "", x.commentaire || ""
+    ].map(v => `"${String(v).replace(/"/g,'""')}"`).join(";") + "\n";
+  });
+
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([csv], { type:"text/csv;charset=utf-8;" }));
+  a.download = "base_independante.csv";
+  a.click();
+};
+
+/* IMPORT */
+window.openImport = () => {
+  $("importCard").classList.remove("hidden");
+};
+
+window.closeImport = () => {
+  $("importCard").classList.add("hidden");
+};
+
+function detectSeparator(text){
+  const first = text.split(/\r?\n/)[0] || "";
+  if(first.includes("\t")) return "\t";
+  if(first.includes(";")) return ";";
+  if(first.includes("|")) return "|";
+  if(first.includes(",")) return ",";
+  return " ";
+}
+
+function splitSmart(line, sep){
+  if(sep === " ") return line.trim().split(/\s+/);
+  if(sep === "\t") return line.split("\t");
+
+  const out = [];
+  let cur = "";
+  let q = false;
+  for(let i=0;i<line.length;i++){
+    const c = line[i];
+    if(c === '"'){
+      if(q && line[i+1] === '"'){
+        cur += '"';
+        i++;
+      } else {
+        q = !q;
+      }
+    } else if(c === sep && !q){
+      out.push(cur);
+      cur = "";
+    } else {
+      cur += c;
+    }
+  }
+  out.push(cur);
+  return out;
+}
+
+function buildMappingUI(headers){
+  const box = $("mappingBox");
+  box.innerHTML = targetFields.map(field => `
+    <div>
+      <label class="small">${field}</label>
+      <select id="map_${field}">
+        <option value="">-- Ignorer --</option>
+        ${headers.map((h, i) => `<option value="${i}">${esc(h)}</option>`).join("")}
+      </select>
+    </div>
+  `).join("");
+}
+
+window.loadFile = async () => {
+  const file = $("file").files[0];
+  if(!file){
+    $("importInfo").textContent = "Choisissez un fichier.";
+    return;
+  }
+
+  const fmt = $("fmt").value;
+  const maxRows = parseInt($("limitImport").value || "500", 10);
+
+  importHeaders = [];
+  importRows = [];
+
+  if(fmt === "xls"){
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, { type:"array" });
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const arr = XLSX.utils.sheet_to_json(ws, { header:1, defval:"" });
+
+    if(!arr.length){
+      $("importInfo").textContent = "Fichier vide.";
+      return;
+    }
+
+    importHeaders = arr[0].map(x => String(x).trim());
+    importRows = arr.slice(1, maxRows + 1);
+  } else {
+    const txt = await file.text();
+    let sep = $("txtSep").value;
+    if(sep === "auto") sep = detectSeparator(txt);
+    else if(sep === "tab") sep = "\t";
+    else if(sep === "space") sep = " ";
+
+    const lines = txt.split(/\r?\n/).filter(x => x.trim());
+    if(!lines.length){
+      $("importInfo").textContent = "Fichier vide.";
+      return;
+    }
+
+    const hasHeader = $("txtHasHeader").value === "yes";
+
+    if(hasHeader){
+      importHeaders = splitSmart(lines[0], sep).map(x => x.trim());
+      importRows = lines.slice(1, maxRows + 1).map(l => splitSmart(l, sep));
+    } else {
+      const firstCols = splitSmart(lines[0], sep);
+      importHeaders = firstCols.map((_, i) => "Colonne " + (i + 1));
+      importRows = lines.slice(0, maxRows).map(l => splitSmart(l, sep));
+    }
+  }
+
+  buildMappingUI(importHeaders);
+  $("importInfo").textContent = `${importRows.length} ligne(s) chargée(s)`;
+  $("preview").textContent =
+    "En-têtes :\n" + importHeaders.join(" | ") +
+    "\n\nAperçu :\n" +
+    importRows.slice(0, 5).map(r => r.join(" | ")).join("\n");
+};
+
+window.validateImport = async () => {
+  if(!importRows.length){
+    $("importInfo").textContent = "Aucune donnée chargée.";
+    return;
+  }
+
+  const mapping = {};
+  targetFields.forEach(f => mapping[f] = $("map_" + f)?.value ?? "");
+
+  let count = 0;
+
+  for(const row of importRows){
+    const docData = {};
+    targetFields.forEach(f => {
+      const idx = mapping[f];
+      docData[f] = idx === "" ? "" : clean(row[parseInt(idx, 10)] || "");
+    });
+
+    if(!docData.statut) docData.statut = "Hors cible";
+    docData.updatedAt = serverTimestamp();
+    docData.createdAt = serverTimestamp();
+
+    await addDoc(colRef, docData);
+    count++;
+  }
+
+  $("importInfo").textContent = `${count} ligne(s) importée(s)`;
+  $("preview").textContent = "Import terminé.";
+};
+</script>
+</body>
+</html>

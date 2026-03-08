@@ -1,0 +1,1520 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>CRM Énergie - Leads prospects</title>
+  <meta name="theme-color" content="#2563eb" />
+
+  <style>
+    :root{
+      --bg:#f4f7fc;
+      --bg2:#eef4ff;
+      --card:#ffffff;
+      --card-soft:#f9fbff;
+      --text:#162236;
+      --muted:#5d6b84;
+      --line:#d8e3f3;
+      --blue:#2563eb;
+      --blue2:#3b82f6;
+      --cyan:#06b6d4;
+      --green:#16a34a;
+      --orange:#f59e0b;
+      --red:#ef4444;
+      --purple:#7c3aed;
+      --shadow:0 16px 38px rgba(19,41,84,.10);
+      --radius:20px;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(37,99,235,.08), transparent 18%),
+        radial-gradient(circle at top right, rgba(6,182,212,.08), transparent 18%),
+        linear-gradient(180deg,#fff 0%, var(--bg) 100%);
+    }
+
+    header{
+      position:sticky;
+      top:0;
+      z-index:50;
+      background:rgba(255,255,255,.92);
+      backdrop-filter:blur(12px);
+      border-bottom:1px solid var(--line);
+    }
+
+    .topbar{
+      max-width:1550px;
+      margin:auto;
+      padding:12px 16px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      min-width:300px;
+    }
+
+    .brand img{
+      width:60px;
+      height:60px;
+      object-fit:contain;
+      border-radius:16px;
+      background:#fff;
+      border:1px solid var(--line);
+      box-shadow:var(--shadow);
+      padding:6px;
+    }
+
+    .brand-text b{
+      display:block;
+      font-size:18px;
+      line-height:1.1;
+    }
+
+    .brand-text span{
+      display:block;
+      color:var(--muted);
+      font-size:12px;
+      margin-top:4px;
+    }
+
+    .top-actions{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:9px 12px;
+      border-radius:999px;
+      background:var(--bg2);
+      border:1px solid var(--line);
+      font-size:12px;
+      font-weight:900;
+      color:#1a3567;
+      white-space:nowrap;
+    }
+
+    .wrap{
+      max-width:1550px;
+      margin:auto;
+      padding:18px 16px 110px;
+    }
+
+    .hero{
+      background:linear-gradient(135deg,#ffffff,#f4f8ff);
+      border:1px solid var(--line);
+      border-radius:28px;
+      box-shadow:var(--shadow);
+      padding:24px;
+      margin-bottom:16px;
+    }
+
+    .hero-badge{
+      display:inline-block;
+      padding:8px 14px;
+      border-radius:999px;
+      background:linear-gradient(135deg,var(--blue),var(--purple));
+      color:#fff;
+      font-size:12px;
+      font-weight:1000;
+      margin-bottom:12px;
+    }
+
+    .hero h1{
+      margin:0 0 10px;
+      font-size:34px;
+      line-height:1.08;
+      color:#11213f;
+    }
+
+    .hero p{
+      margin:0;
+      color:#4d5d79;
+      line-height:1.7;
+      max-width:980px;
+    }
+
+    .quick-nav{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:16px;
+    }
+
+    .btn{
+      border:none;
+      cursor:pointer;
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      padding:12px 14px;
+      border-radius:16px;
+      font-weight:1000;
+      transition:.15s ease;
+      box-shadow:0 8px 20px rgba(29,78,216,.10);
+    }
+
+    .btn:hover{transform:translateY(-1px)}
+    .btn:active{transform:translateY(1px)}
+    .btn.primary{background:linear-gradient(135deg,var(--blue),var(--blue2)); color:#fff}
+    .btn.cyan{background:linear-gradient(135deg,var(--cyan),#38bdf8); color:#083344}
+    .btn.green{background:linear-gradient(135deg,#4ade80,var(--green)); color:#052e16}
+    .btn.orange{background:linear-gradient(135deg,#fcd34d,var(--orange)); color:#4a2c00}
+    .btn.red{background:linear-gradient(135deg,#f87171,var(--red)); color:#fff}
+    .btn.ghost{background:#fff; color:var(--text); border:1px solid var(--line)}
+    .btn.small{padding:10px 12px; border-radius:14px; font-size:13px}
+
+    .grid{
+      display:grid;
+      grid-template-columns:560px 1fr;
+      gap:16px;
+      align-items:start;
+    }
+
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:16px;
+      margin-bottom:16px;
+    }
+
+    .section-title{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin-bottom:12px;
+    }
+
+    .dot{
+      width:14px;
+      height:14px;
+      border-radius:50%;
+      background:linear-gradient(135deg,var(--blue),var(--cyan),var(--purple));
+    }
+
+    .section-title h2,.section-title h3{
+      margin:0;
+      font-size:20px;
+    }
+
+    .hint{
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.6;
+    }
+
+    .field-grid-2,.field-grid-3,.field-grid-4{
+      display:grid;
+      gap:10px;
+    }
+    .field-grid-2{grid-template-columns:1fr 1fr}
+    .field-grid-3{grid-template-columns:1fr 1fr 1fr}
+    .field-grid-4{grid-template-columns:1fr 1fr 1fr 1fr}
+
+    .question-card{
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:var(--card-soft);
+      padding:12px;
+      margin-bottom:10px;
+    }
+
+    .question-title{
+      font-size:13px;
+      font-weight:1000;
+      color:#173867;
+      margin-bottom:8px;
+      line-height:1.5;
+    }
+
+    label{
+      display:block;
+      margin:8px 0 6px;
+      font-size:12px;
+      color:#4d5d7b;
+      font-weight:800;
+    }
+
+    input, select, textarea{
+      width:100%;
+      border:1px solid var(--line);
+      border-radius:15px;
+      background:#fff;
+      color:var(--text);
+      padding:12px 12px;
+      outline:none;
+      font-size:14px;
+      box-shadow:0 3px 10px rgba(15,23,42,.03);
+    }
+
+    input:focus, select:focus, textarea:focus{
+      border-color:#93c5fd;
+      box-shadow:0 0 0 4px rgba(59,130,246,.12);
+    }
+
+    textarea{
+      min-height:86px;
+      resize:vertical;
+    }
+
+    .divider{
+      height:1px;
+      background:var(--line);
+      margin:14px 0;
+    }
+
+    .script-block{
+      display:grid;
+      gap:10px;
+    }
+
+    .script-line{
+      padding:14px 15px;
+      border:1px solid #dce7fb;
+      border-left:5px solid var(--blue);
+      border-radius:16px;
+      background:#f8fbff;
+      line-height:1.7;
+      color:#183154;
+    }
+
+    .question-box{
+      padding:14px 15px;
+      border:1px solid #cfe0ff;
+      border-radius:16px;
+      background:linear-gradient(135deg,#eaf3ff,#f5f9ff);
+      font-weight:1000;
+      color:#143669;
+    }
+
+    .objection-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(250px,1fr));
+      gap:12px;
+    }
+
+    .objection-card{
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:14px;
+      background:var(--card-soft);
+    }
+
+    .objection-card h4{
+      margin:0 0 8px;
+      font-size:16px;
+      color:#183154;
+    }
+
+    .client{
+      color:#8a5a00;
+      font-style:italic;
+      margin-bottom:8px;
+      line-height:1.5;
+      font-size:13px;
+    }
+
+    .answer{
+      color:#41516f;
+      line-height:1.65;
+      font-size:14px;
+    }
+
+    .toolbar{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
+    .tableWrap{
+      overflow:auto;
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:#fff;
+      max-height:72vh;
+    }
+
+    table{
+      width:100%;
+      min-width:2200px;
+      border-collapse:separate;
+      border-spacing:0;
+    }
+
+    th, td{
+      padding:10px 8px;
+      border-bottom:1px solid var(--line);
+      font-size:12px;
+      vertical-align:top;
+      text-align:left;
+    }
+
+    th{
+      position:sticky;
+      top:0;
+      z-index:3;
+      background:#eef5ff;
+      color:#173867;
+      font-weight:1000;
+    }
+
+    tr:hover td{
+      background:#fbfdff;
+    }
+
+    .tag{
+      display:inline-block;
+      padding:4px 9px;
+      border-radius:999px;
+      font-size:11px;
+      font-weight:1000;
+      border:1px solid transparent;
+      white-space:nowrap;
+    }
+
+    .tag.total{background:#ecfdf3;color:#166534;border-color:#bbf7d0}
+    .tag.partiel{background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe}
+    .tag.confirm{background:#fff7ed;color:#9a3412;border-color:#fed7aa}
+
+    .check{
+      width:18px;
+      height:18px;
+      accent-color:var(--blue);
+    }
+
+    .sticky-footer{
+      position:sticky;
+      bottom:12px;
+      z-index:20;
+      margin-top:10px;
+    }
+
+    .sticky-box{
+      background:rgba(255,255,255,.94);
+      backdrop-filter:blur(12px);
+      border:1px solid var(--line);
+      border-radius:20px;
+      box-shadow:var(--shadow);
+      padding:12px;
+    }
+
+    .toast{
+      position:fixed;
+      left:50%;
+      bottom:18px;
+      transform:translateX(-50%);
+      background:#12213e;
+      color:#fff;
+      padding:12px 14px;
+      border-radius:16px;
+      font-weight:1000;
+      z-index:999;
+      display:none;
+      max-width:94vw;
+      box-shadow:0 10px 28px rgba(15,23,42,.25);
+    }
+
+    .hidden{display:none !important}
+
+    @media (max-width:1280px){
+      .grid{grid-template-columns:1fr}
+    }
+    @media (max-width:900px){
+      .field-grid-4,.field-grid-3{grid-template-columns:1fr}
+    }
+    @media (max-width:560px){
+      .field-grid-2{grid-template-columns:1fr}
+      .hero h1{font-size:28px}
+      .toolbar,.quick-nav,.top-actions{flex-direction:column;align-items:stretch}
+      .btn,.pill{width:100%}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="topbar">
+      <div class="brand">
+        <img src="logomt.png" alt="Logo Madagascar Télétravail">
+        <div class="brand-text">
+        <div class="quick-nav">
+  <a href="reporting.html" class="btn ghost">Statistiques Lead</a>
+  <a href="reportingvicidial.html" class="btn orange">Statistiques Production</a>
+    <button class="orange" onclick="location.href='base.html'">
+    Appels manuels
+  </button>
+</div>
+          <b>CRM Énergie - Leads prospects</b>
+          
+        </div>
+      </div>
+
+      <div class="top-actions">
+        <span id="pillUser" class="pill">Non connecté</span>
+        <span id="pillCount" class="pill">0 fiche</span>
+        <button id="btnLoginTop" class="btn ghost small">Connexion</button>
+        <button id="btnLogoutTop" class="btn red small hidden">Déconnexion</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <section class="hero">
+      <div class="hero-badge">CRM ÉNERGIE </div>
+
+    <section id="loginCard" class="card">
+      <div class="section-title">
+        <span class="dot"></span>
+        <h2>Connexion</h2>
+      </div>
+
+      <div class="field-grid-3">
+        <div>
+          <label>Rôle</label>
+          <select id="role">
+            <option>TA1</option>
+            <option>TA2</option>
+            <option>TA3</option>
+            <option>TA4</option>
+            <option>TA5</option>
+            <option>Superviseur</option>
+            <option>Client</option>
+            <option value="Admin">Admin</option>
+            <option value="Custom">Nom libre...</option>
+          </select>
+        </div>
+        <div>
+          <label>Nom affiché</label>
+          <input id="displayName" placeholder="Ex : Sandra/ Agent 1">
+        </div>
+        <div id="customRoleBox" class="hidden">
+          <label>Nom du rôle</label>
+          <input id="customRole" placeholder="Ex : Team lead / Quality">
+        </div>
+      </div>
+
+      <div id="adminBox" class="hidden">
+        <label>Mot de passe Admin</label>
+        <input id="adminPass" type="password" placeholder="switch3">
+      </div>
+
+      <div class="toolbar" style="margin-top:12px">
+        <button id="btnLogin" class="btn primary">Se connecter</button>
+        <button id="btnLogout" class="btn red hidden">Se déconnecter</button>
+      </div>
+
+      <div id="loginMsg" class="hint" style="margin-top:10px"></div>
+      <div id="firebaseMsg" class="hint" style="margin-top:6px"></div>
+    </section>
+
+    <section id="appCard" class="hidden">
+      <div class="grid">
+        <aside>
+          <section id="formSection" class="card">
+            <div class="section-title">
+              <span class="dot"></span>
+              <h3>Ajouter / modifier une fiche prospect</h3>
+            </div>
+
+            <div class="question-card">
+              <div class="question-title">Identité du prospect</div>
+              <div class="field-grid-2">
+                <div>
+                  <label>Nom</label>
+                  <input id="f_nom" placeholder="Nom">
+                </div>
+                <div>
+                  <label>Prénom</label>
+                  <input id="f_prenom" placeholder="Prénom">
+                </div>
+              </div>
+              <div class="field-grid-2">
+                <div>
+                  <label>Téléphone principal</label>
+                  <input id="f_tel" placeholder="Téléphone">
+                </div>
+                <div>
+                  <label>Mobile / autre numéro</label>
+                  <input id="f_mobile" placeholder="Mobile">
+                </div>
+              </div>
+            </div>
+
+            <div class="question-card">
+              <div class="question-title">Quelle est l’adresse complète du logement concerné ?</div>
+              <label>Adresse complète</label>
+              <input id="f_adresse" placeholder="Adresse du logement">
+              <label>Réponse personnalisée du prospect</label>
+              <textarea id="f_rep_adresse" placeholder="Noter la formulation exacte du prospect si besoin"></textarea>
+            </div>
+
+            <div class="question-card">
+              <div class="question-title">Êtes-vous bien propriétaire du logement ?</div>
+              <label>Réponse rapide</label>
+              <select id="f_proprietaire">
+                <option value="">Sélectionner</option>
+                <option>Oui</option>
+                <option>Non</option>
+                <option>Indivision</option>
+                <option>Ne sait pas</option>
+              </select>
+              <label>Réponse personnalisée du prospect</label>
+              <textarea id="f_rep_proprietaire" placeholder="Ex : Oui avec mon mari / maison héritée / locataire mais proche du propriétaire..."></textarea>
+            </div>
+
+            <div class="question-card">
+              <div class="question-title">Il s’agit bien d’une maison individuelle ?</div>
+              <label>Réponse rapide</label>
+              <select id="f_maison">
+                <option value="">Sélectionner</option>
+                <option>Oui</option>
+                <option>Non</option>
+                <option>Appartement</option>
+                <option>Autre</option>
+              </select>
+              <label>Réponse personnalisée du prospect</label>
+              <textarea id="f_rep_maison" placeholder="Précisions éventuelles du prospect"></textarea>
+            </div>
+
+            <div class="question-card">
+              <div class="question-title">Le logement a-t-il plus ou moins de 15 ans ?</div>
+              <label>Réponse rapide</label>
+              <select id="f_age" onchange="toggleAgeAutre()">
+                <option value="">Sélectionner</option>
+                <option value="Moins de 15 ans">Moins de 15 ans</option>
+                <option value="Plus de 15 ans">Plus de 15 ans</option>
+                <option value="Ne sait pas">Ne sait pas</option>
+                <option value="Autre">Autre</option>
+              </select>
+              <input id="f_age_autre" placeholder="Préciser si Autre : année, ancienneté..." style="display:none;margin-top:8px;">
+              <label>Réponse personnalisée du prospect</label>
+              <textarea id="f_rep_age" placeholder="Ex : maison de famille, rénovée récemment, environ 20 ans..."></textarea>
+            </div>
+
+            <div class="question-card">
+              <div class="question-title">Quel type de chauffage utilisez-vous actuellement ?</div>
+              <label>Réponse rapide</label>
+              <select id="f_chauffage">
+                <option value="">Sélectionner</option>
+                <option>Gaz</option>
+                <option>Fioul</option>
+                <option>Propane</option>
+                <option>Électrique</option>
+                <option>Bois</option>
+                <option>Pompe à chaleur</option>
+                <option>Combiné</option>
+                <option>Autre</option>
+              </select>
+              <label>Si combiné / autre, précision</label>
+              <input id="f_chauffage_precis" placeholder="Ex : gaz + électrique / PAC + bois">
+              <label>Réponse personnalisée du prospect</label>
+              <textarea id="f_rep_chauffage" placeholder="Formulation exacte du prospect"></textarea>
+            </div>
+
+            <div class="question-card">
+              <div class="question-title">Votre projet concerne-t-il l’isolation, la PAC, ou un ensemble de travaux ?</div>
+              <div class="field-grid-2">
+                <div>
+                  <label>Projet principal</label>
+                  <select id="f_projet">
+                    <option value="">Sélectionner</option>
+                    <option>Isolation</option>
+                    <option>Pompe à chaleur</option>
+                    <option>Isolation + PAC</option>
+                    <option>Combiné</option>
+                    <option>Audit</option>
+                    <option>Autre</option>
+                  </select>
+                </div>
+                <div>
+                  <label>Précision projet</label>
+                  <input id="f_projet_precis" placeholder="Ex : combles + PAC / murs / plancher...">
+                </div>
+              </div>
+              <label>Réponse personnalisée du prospect</label>
+              <textarea id="f_rep_projet" placeholder="Réponse détaillée du prospect"></textarea>
+            </div>
+
+            <div class="question-card">
+              <div class="question-title">Quand peut-on le rappeler ou lui proposer un rendez-vous ?</div>
+              <div class="field-grid-2">
+                <div>
+                  <label>Créneau de rappel</label>
+                  <input id="f_rappel" placeholder="Ex : demain 14h / matin / soir">
+                </div>
+                <div>
+                  <label>Date / heure RDV</label>
+                  <input id="f_rdv" type="datetime-local">
+                </div>
+              </div>
+              <label>Réponse personnalisée du prospect</label>
+              <textarea id="f_rep_rappel" placeholder="Précisions sur disponibilité / indisponibilités"></textarea>
+            </div>
+
+            <div class="question-card">
+              <div class="question-title">Qualification du lead</div>
+              <div class="field-grid-2">
+                <div>
+                  <label>Statut</label>
+                  <select id="f_statut">
+                               <option value="À finaliser">À rappeler pour finaliser</option>
+                    <option value="Lead qualifié total">Lead qualifié total</option>
+                    <option value="Lead qualifié partiel">Lead qualifié partiel</option>
+                    <option value="OK, à confirmer">OK, à confirmer</option>
+                  </select>
+                </div>
+                <div>
+                  <label>Code / référence</label>
+                  <input id="f_code" placeholder="Code / référence">
+                </div>
+              </div>
+              <div class="field-grid-2">
+                <div>
+                  <label>Agent</label>
+                  <input id="f_agent" placeholder="Agent">
+                </div>
+                <div>
+                  <label>Source / campagne</label>
+                  <input id="f_source" placeholder="Ex : campagne isolation mars">
+                </div>
+              </div>
+            </div>
+
+            <div class="question-card">
+              <div class="question-title">Observations complémentaires</div>
+              <label>Objection principale</label>
+              <textarea id="f_objection" placeholder="Objection entendue"></textarea>
+              <label>Commentaire agent</label>
+              <textarea id="f_comment" placeholder="Commentaire client / synthèse agent"></textarea>
+              <label>Notes internes</label>
+              <textarea id="f_notes" placeholder="Notes internes supplémentaires"></textarea>
+            </div>
+
+            <div class="toolbar" style="margin-top:14px">
+              <button id="btnSave" class="btn primary">Enregistrer la fiche</button>
+              <button id="btnNew" class="btn cyan">Ajouter une nouvelle fiche</button>
+              <button id="btnClear" class="btn ghost">Vider le formulaire</button>
+              <button id="btnDeleteOne" class="btn red hidden">Supprimer cette fiche</button>
+            </div>
+
+            <div class="toolbar" style="margin-top:10px">
+              <button class="btn green small" onclick="quickStatus('Lead qualifié total')">Lead qualifié total</button>
+              <button class="btn primary small" onclick="quickStatus('Lead qualifié partiel')">Lead qualifié partiel</button>
+              <button class="btn orange small" onclick="quickStatus('OK, à confirmer')">OK, à confirmer</button>
+            </div>
+
+            <div id="saveMsg" class="hint" style="margin-top:10px"></div>
+          </section>
+        </aside>
+
+        <main>
+          <section id="scriptSection" class="card">
+            <div class="section-title">
+              <span class="dot"></span>
+              <h3>Script d’appel visible</h3>
+            </div>
+
+            <div class="script-block">
+              <div class="script-line">
+                Bonjour, je suis bien avec <strong>Monsieur / Madame [Nom]</strong> ?
+              </div>
+              <div class="script-line">
+                Bonjour, je vous appelle dans le cadre d’une campagne d’information sur les aides à l’isolation et à la rénovation énergétique.
+              </div>
+              <div class="script-line">
+                Selon les critères du logement et du foyer, certaines prises en charge peuvent réduire fortement le coût des travaux, avec parfois un reste à charge très faible.
+              </div>
+              <div class="script-line">
+                Je vous prends 20 secondes pour vérifier si votre logement peut être concerné, d’accord ?
+              </div>
+              <div class="question-box">Vous êtes bien propriétaire du logement ?</div>
+              <div class="question-box">Le logement a plus de 15 ans ?</div>
+              <div class="question-box">Il s’agit bien d’une maison individuelle ?</div>
+              <div class="question-box">Quel type de chauffage utilisez-vous actuellement ?</div>
+              <div class="question-box">Souhaitez-vous améliorer l’isolation, le chauffage, ou les deux ?</div>
+              <div class="script-line">
+                Parfait. L’objectif est simplement de vérifier si votre logement peut entrer dans le cadre d’une étude d’éligibilité ou d’un rappel qualifié.
+              </div>
+            </div>
+          </section>
+
+          <section class="card">
+            <div class="section-title">
+              <span class="dot"></span>
+              <h3>Objections utiles</h3>
+            </div>
+
+            <div class="objection-grid">
+              <div class="objection-card">
+                <h4>Pas intéressé(e)</h4>
+                <div class="client">“Non merci, ça ne m’intéresse pas.”</div>
+                <div class="answer">Je comprends parfaitement. L’idée n’est pas de vous engager aujourd’hui, seulement de vérifier si votre logement entre dans certains critères.</div>
+              </div>
+              <div class="objection-card">
+                <h4>Pas le temps</h4>
+                <div class="client">“Je suis occupé(e).”</div>
+                <div class="answer">Aucun souci, je vais être très bref. Je vous pose juste les points essentiels et si ce n’est pas pertinent, on s’arrête tout de suite.</div>
+              </div>
+              <div class="objection-card">
+                <h4>Je me méfie</h4>
+                <div class="client">“Je n’ai pas confiance dans ce type d’appel.”</div>
+                <div class="answer">Vous avez raison d’être vigilant(e). Je ne vous demande aucun paiement, juste une vérification simple pour savoir si votre logement peut être concerné.</div>
+              </div>
+              <div class="objection-card">
+                <h4>Envoyez-moi les infos</h4>
+                <div class="client">“Envoyez-moi un mail.”</div>
+                <div class="answer">Avec plaisir. Le plus utile est d’abord de vérifier si votre situation correspond bien aux critères, pour transmettre une information adaptée.</div>
+              </div>
+            </div>
+          </section>
+
+          <section class="card">
+            <div class="section-title">
+              <span class="dot"></span>
+              <h3>Filtres et actions</h3>
+            </div>
+
+            <div class="field-grid-4">
+              <div>
+                <label>Filtre statut</label>
+                <select id="fltStatut">
+                  <option value="">Tous</option>
+                  <option value="Lead qualifié total">Lead qualifié total</option>
+                  <option value="Lead qualifié partiel">Lead qualifié partiel</option>
+                  <option value="OK, à confirmer">OK, à confirmer</option>
+                </select>
+              </div>
+              <div>
+                <label>Filtre agent</label>
+                <select id="fltAgent">
+                  <option value="">Tous</option>
+                </select>
+              </div>
+              <div>
+                <label>Date début RDV</label>
+                <input id="fltFrom" type="date">
+              </div>
+              <div>
+                <label>Date fin RDV</label>
+                <input id="fltTo" type="date">
+              </div>
+            </div>
+
+            <div class="field-grid-2">
+              <div>
+                <label>Recherche</label>
+                <input id="fltQ" placeholder="Nom, prénom, téléphone, adresse, chauffage, commentaire...">
+              </div>
+              <div>
+                <label>Affichage max</label>
+                <select id="fltLimit">
+                  <option value="100">100</option>
+                  <option value="200" selected>200</option>
+                  <option value="500">500</option>
+                  <option value="1000">1000</option>
+                  <option value="999999">Tout</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="toolbar" style="margin-top:12px">
+              <button id="btnApply" class="btn primary small">Appliquer</button>
+              <button id="btnResetFilters" class="btn ghost small">Réinitialiser</button>
+              <button id="btnExportExcelFiltered" class="btn green small">Export Excel filtré</button>
+              <button id="btnExportExcelAll" class="btn green small">Export Excel tout</button>
+              <button id="btnExportExcelSelected" class="btn green small">Export Excel sélection</button>
+              <button id="btnDeleteSelected" class="btn red small">Supprimer sélection</button>
+              <button id="btnDeleteAll" class="btn red small">Tout supprimer</button>
+            </div>
+          </section>
+        </main>
+      </div>
+
+      <section id="tableSection" class="card">
+        <div class="section-title">
+          <span class="dot"></span>
+          <h3>Fiches enregistrées</h3>
+        </div>
+
+        <div class="hint">Chaque fiche peut être rouverte, modifiée puis réenregistrée.</div>
+
+        <div class="tableWrap" style="margin-top:12px">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:44px"><input id="cbAll" type="checkbox" class="check"></th>
+                <th>Nom</th>
+                <th>Prénom</th>
+                <th>Tél</th>
+                <th>Mobile</th>
+                <th>Adresse</th>
+                <th>Rép. adresse</th>
+                <th>Propriétaire</th>
+                <th>Rép. propriétaire</th>
+                <th>Maison</th>
+                <th>Rép. maison</th>
+                <th>Âge</th>
+                <th>Rép. âge</th>
+                <th>Chauffage</th>
+                <th>Précision chauffage</th>
+                <th>Rép. chauffage</th>
+                <th>Projet</th>
+                <th>Précision projet</th>
+                <th>Rép. projet</th>
+                <th>Rappel</th>
+                <th>RDV</th>
+                <th>Rép. rappel</th>
+                <th>Statut</th>
+                <th>Agent</th>
+                <th>Code</th>
+                <th>Source</th>
+                <th>Objection</th>
+                <th>Commentaire</th>
+                <th>Notes</th>
+                <th>Modifié</th>
+                <th>Par</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="tbody">
+              <tr><td colspan="32">Aucune donnée.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <div class="sticky-footer">
+        <div class="sticky-box">
+          <div class="toolbar">
+            <a href="#scriptSection" class="btn primary small">Script</a>
+            <a href="#formSection" class="btn cyan small">Formulaire</a>
+            <a href="#tableSection" class="btn green small">Fiches</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      addDoc,
+      doc,
+      updateDoc,
+      deleteDoc,
+      onSnapshot,
+      query,
+      orderBy,
+      serverTimestamp,
+      getDocs
+    } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyA-G8P5NokxI6ZaIOMroQrH4x8mp_Q2dgg",
+      authDomain: "axokit-crm-ecoles-e56ab.firebaseapp.com",
+      projectId: "axokit-crm-ecoles-e56ab",
+      storageBucket: "axokit-crm-ecoles-e56ab.firebasestorage.app",
+      messagingSenderId: "832744598173",
+      appId: "1:832744598173:web:ee8a39ac6099f987e64274"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // COLLECTION SÉPARÉE DU CRM AUDIT / ÉPARGNE
+    const COL_NAME = "crm_energie_leads_mt";
+    const colRef = collection(db, COL_NAME);
+
+    const $ = id => document.getElementById(id);
+    const STORE_USER = "CRM_ENERGIE_FIREBASE_USER_V1";
+    const ADMIN_PASS = "admin2026";
+
+    let CURRENT_USER = null;
+    let EDIT_ID = null;
+    let ALL = [];
+
+    function toast(msg){
+      const t = $("toast");
+      t.textContent = msg;
+      t.style.display = "block";
+      clearTimeout(t._t);
+      t._t = setTimeout(()=> t.style.display = "none", 2200);
+    }
+
+    function norm(v){
+      return (v == null ? "" : String(v)).replace(/\u00A0/g," ").replace(/\s+/g," ").trim();
+    }
+
+    function esc(s){
+      return String(s ?? "")
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;");
+    }
+
+    function statusClass(st){
+      if(st === "Lead qualifié total") return "total";
+      if(st === "Lead qualifié partiel") return "partiel";
+      return "confirm";
+    }
+
+    function toDateOnly(v){
+      if(!v) return "";
+      return String(v).slice(0,10);
+    }
+
+    function formatTs(ts){
+      try{
+        if(!ts) return "";
+        if(typeof ts === "string") return ts;
+        if(ts.toDate) return ts.toDate().toLocaleString("fr-FR");
+        return "";
+      }catch(e){
+        return "";
+      }
+    }
+
+    function updatePills(){
+      $("pillCount").textContent = `${ALL.length} fiche${ALL.length > 1 ? "s" : ""}`;
+    }
+
+    function requireAdmin(){
+      const pass = prompt("Mot de passe Admin :");
+      if(pass !== ADMIN_PASS){
+        toast("Mot de passe incorrect");
+        return false;
+      }
+      return true;
+    }
+
+    $("role").addEventListener("change", ()=>{
+      const role = $("role").value;
+      $("customRoleBox").classList.toggle("hidden", role !== "Custom");
+      $("adminBox").classList.toggle("hidden", role !== "Admin");
+    });
+
+    $("btnLoginTop").onclick = ()=> $("loginCard").scrollIntoView({behavior:"smooth"});
+    $("btnLogoutTop").onclick = logout;
+    $("btnLogout").onclick = logout;
+
+    $("btnLogin").onclick = ()=>{
+      const baseRole = $("role").value;
+      let roleLabel = baseRole;
+      if(baseRole === "Custom"){
+        roleLabel = norm($("customRole").value) || "Nom libre";
+      }
+
+      const name = norm($("displayName").value) || "Utilisateur";
+      const isAdmin = baseRole === "Admin";
+
+      if(isAdmin && $("adminPass").value !== ADMIN_PASS){
+        $("loginMsg").textContent = "Mot de passe Admin incorrect.";
+        return;
+      }
+
+      CURRENT_USER = { role: baseRole, roleLabel, name, isAdmin };
+      localStorage.setItem(STORE_USER, JSON.stringify(CURRENT_USER));
+      showApp();
+      toast("Connecté");
+    };
+
+    function logout(){
+      localStorage.removeItem(STORE_USER);
+      location.reload();
+    }
+
+    function showApp(){
+      $("loginCard").classList.add("hidden");
+      $("appCard").classList.remove("hidden");
+      $("btnLoginTop").classList.add("hidden");
+      $("btnLogoutTop").classList.remove("hidden");
+      $("btnLogout").classList.remove("hidden");
+      $("pillUser").textContent = `${CURRENT_USER.name} — ${CURRENT_USER.roleLabel}`;
+      $("loginMsg").textContent = "";
+      if(!$("f_agent").value){
+        $("f_agent").value = `${CURRENT_USER.name} (${CURRENT_USER.roleLabel})`;
+      }
+    }
+
+    const savedUser = localStorage.getItem(STORE_USER);
+    if(savedUser){
+      try{
+        CURRENT_USER = JSON.parse(savedUser);
+        if(CURRENT_USER?.name) showApp();
+      }catch(e){}
+    }
+
+    window.toggleAgeAutre = function(){
+      const age = $("f_age").value;
+      const autre = $("f_age_autre");
+      if(age === "Autre"){
+        autre.style.display = "block";
+      }else{
+        autre.style.display = "none";
+        autre.value = "";
+      }
+    };
+
+    window.quickStatus = function(status){
+      $("f_statut").value = status;
+      toast("Statut appliqué : " + status);
+    };
+
+    function getFormData(){
+      let ageValue = $("f_age").value || "";
+      if(ageValue === "Autre"){
+        ageValue = norm($("f_age_autre").value) || "Autre";
+      }
+
+      return {
+        nom: norm($("f_nom").value),
+        prenom: norm($("f_prenom").value),
+        tel: norm($("f_tel").value),
+        mobile: norm($("f_mobile").value),
+
+        adresse: norm($("f_adresse").value),
+        repAdresse: norm($("f_rep_adresse").value),
+
+        proprietaire: $("f_proprietaire").value || "",
+        repProprietaire: norm($("f_rep_proprietaire").value),
+
+        maison: $("f_maison").value || "",
+        repMaison: norm($("f_rep_maison").value),
+
+        ageLogement: ageValue,
+        repAge: norm($("f_rep_age").value),
+
+        chauffage: $("f_chauffage").value || "",
+        chauffagePrecis: norm($("f_chauffage_precis").value),
+        repChauffage: norm($("f_rep_chauffage").value),
+
+        projet: $("f_projet").value || "",
+        projetPrecis: norm($("f_projet_precis").value),
+        repProjet: norm($("f_rep_projet").value),
+
+        rappel: norm($("f_rappel").value),
+        rdv: $("f_rdv").value || "",
+        repRappel: norm($("f_rep_rappel").value),
+
+        statut: $("f_statut").value || "Lead qualifié total",
+        agent: norm($("f_agent").value),
+        code: norm($("f_code").value),
+        source: norm($("f_source").value),
+
+        objection: norm($("f_objection").value),
+        commentaire: norm($("f_comment").value),
+        notes: norm($("f_notes").value)
+      };
+    }
+
+    function fillForm(x){
+      $("f_nom").value = x.nom || "";
+      $("f_prenom").value = x.prenom || "";
+      $("f_tel").value = x.tel || "";
+      $("f_mobile").value = x.mobile || "";
+
+      $("f_adresse").value = x.adresse || "";
+      $("f_rep_adresse").value = x.repAdresse || "";
+
+      $("f_proprietaire").value = x.proprietaire || "";
+      $("f_rep_proprietaire").value = x.repProprietaire || "";
+
+      $("f_maison").value = x.maison || "";
+      $("f_rep_maison").value = x.repMaison || "";
+
+      const ageOptions = ["Moins de 15 ans","Plus de 15 ans","Ne sait pas","Autre"];
+      if(ageOptions.includes(x.ageLogement)){
+        $("f_age").value = x.ageLogement || "";
+        $("f_age_autre").value = x.ageLogement === "Autre" ? (x.ageLogement || "") : "";
+      } else if(x.ageLogement){
+        $("f_age").value = "Autre";
+        $("f_age_autre").value = x.ageLogement;
+      } else {
+        $("f_age").value = "";
+        $("f_age_autre").value = "";
+      }
+      toggleAgeAutre();
+
+      $("f_rep_age").value = x.repAge || "";
+
+      $("f_chauffage").value = x.chauffage || "";
+      $("f_chauffage_precis").value = x.chauffagePrecis || "";
+      $("f_rep_chauffage").value = x.repChauffage || "";
+
+      $("f_projet").value = x.projet || "";
+      $("f_projet_precis").value = x.projetPrecis || "";
+      $("f_rep_projet").value = x.repProjet || "";
+
+      $("f_rappel").value = x.rappel || "";
+      $("f_rdv").value = x.rdv || "";
+      $("f_rep_rappel").value = x.repRappel || "";
+
+      $("f_statut").value = x.statut || "Lead qualifié total";
+      $("f_agent").value = x.agent || "";
+      $("f_code").value = x.code || "";
+      $("f_source").value = x.source || "";
+
+      $("f_objection").value = x.objection || "";
+      $("f_comment").value = x.commentaire || "";
+      $("f_notes").value = x.notes || "";
+    }
+
+    function clearForm(){
+      const ids = [
+        "f_nom","f_prenom","f_tel","f_mobile",
+        "f_adresse","f_rep_adresse",
+        "f_proprietaire","f_rep_proprietaire",
+        "f_maison","f_rep_maison",
+        "f_age","f_age_autre","f_rep_age",
+        "f_chauffage","f_chauffage_precis","f_rep_chauffage",
+        "f_projet","f_projet_precis","f_rep_projet",
+        "f_rappel","f_rdv","f_rep_rappel",
+        "f_statut","f_agent","f_code","f_source",
+        "f_objection","f_comment","f_notes"
+      ];
+      ids.forEach(id => $(id).value = "");
+      $("f_statut").value = "Lead qualifié total";
+      if(CURRENT_USER){
+        $("f_agent").value = `${CURRENT_USER.name} (${CURRENT_USER.roleLabel})`;
+      }
+      EDIT_ID = null;
+      $("btnDeleteOne").classList.add("hidden");
+      $("saveMsg").textContent = "";
+      toggleAgeAutre();
+    }
+
+    $("btnNew").onclick = ()=>{
+      clearForm();
+      toast("Nouvelle fiche prête");
+      $("formSection").scrollIntoView({behavior:"smooth"});
+    };
+
+    $("btnClear").onclick = ()=>{
+      clearForm();
+      toast("Formulaire vidé");
+    };
+
+    $("btnSave").onclick = async ()=>{
+      if(!CURRENT_USER){
+        toast("Veuillez vous connecter");
+        return;
+      }
+
+      const payload = {
+        ...getFormData(),
+        updatedAt: serverTimestamp(),
+        updatedBy: `${CURRENT_USER.name} — ${CURRENT_USER.roleLabel}`
+      };
+
+      try{
+        if(EDIT_ID){
+          await updateDoc(doc(db, COL_NAME, EDIT_ID), payload);
+          toast("Fiche modifiée");
+        } else {
+          await addDoc(colRef, {
+            ...payload,
+            createdAt: serverTimestamp(),
+            createdBy: payload.updatedBy
+          });
+          toast("Fiche ajoutée");
+        }
+
+        clearForm();
+        $("saveMsg").textContent = "Fiche enregistrée dans Firebase.";
+        $("tableSection").scrollIntoView({behavior:"smooth"});
+      }catch(e){
+        console.error(e);
+        toast("Erreur enregistrement");
+      }
+    };
+
+    $("btnDeleteOne").onclick = async ()=>{
+      if(!EDIT_ID) return;
+      if(!requireAdmin()) return;
+      if(!confirm("Supprimer cette fiche ?")) return;
+
+      try{
+        await deleteDoc(doc(db, COL_NAME, EDIT_ID));
+        clearForm();
+        toast("Fiche supprimée");
+      }catch(e){
+        console.error(e);
+        toast("Erreur suppression");
+      }
+    };
+
+    function rebuildAgentFilter(){
+      const values = [...new Set(ALL.map(x => norm(x.agent)).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+      const cur = $("fltAgent").value;
+      $("fltAgent").innerHTML = `<option value="">Tous</option>` + values.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join("");
+      if(values.includes(cur)) $("fltAgent").value = cur;
+    }
+
+    function matchesQuery(row, q){
+      const txt = [
+        row.nom,row.prenom,row.tel,row.mobile,row.adresse,row.repAdresse,row.proprietaire,row.repProprietaire,
+        row.maison,row.repMaison,row.ageLogement,row.repAge,row.chauffage,row.chauffagePrecis,row.repChauffage,
+        row.projet,row.projetPrecis,row.repProjet,row.rappel,row.rdv,row.repRappel,row.statut,row.agent,row.code,
+        row.source,row.objection,row.commentaire,row.notes,row.updatedBy
+      ].join(" ").toLowerCase();
+      return txt.includes(q.toLowerCase());
+    }
+
+    function getFiltered(){
+      let rows = [...ALL];
+      const st = $("fltStatut").value;
+      const ag = $("fltAgent").value;
+      const from = $("fltFrom").value;
+      const to = $("fltTo").value;
+      const q = norm($("fltQ").value);
+      const limit = Number($("fltLimit").value || 200);
+
+      if(st) rows = rows.filter(x => (x.statut || "") === st);
+      if(ag) rows = rows.filter(x => norm(x.agent) === ag);
+      if(from) rows = rows.filter(x => !x.rdv || toDateOnly(x.rdv) >= from);
+      if(to) rows = rows.filter(x => !x.rdv || toDateOnly(x.rdv) <= to);
+      if(q) rows = rows.filter(x => matchesQuery(x, q));
+
+      return rows.slice(0, limit);
+    }
+
+    function renderRows(rows){
+      const tb = $("tbody");
+      if(!rows.length){
+        tb.innerHTML = `<tr><td colspan="32">Aucune donnée.</td></tr>`;
+        return;
+      }
+
+      tb.innerHTML = rows.map(x => `
+        <tr>
+          <td><input type="checkbox" class="check rowCheck" data-id="${esc(x.id)}"></td>
+          <td>${esc(x.nom)}</td>
+          <td>${esc(x.prenom)}</td>
+          <td>${esc(x.tel)}</td>
+          <td>${esc(x.mobile)}</td>
+          <td>${esc(x.adresse)}</td>
+          <td>${esc(x.repAdresse)}</td>
+          <td>${esc(x.proprietaire)}</td>
+          <td>${esc(x.repProprietaire)}</td>
+          <td>${esc(x.maison)}</td>
+          <td>${esc(x.repMaison)}</td>
+          <td>${esc(x.ageLogement)}</td>
+          <td>${esc(x.repAge)}</td>
+          <td>${esc(x.chauffage)}</td>
+          <td>${esc(x.chauffagePrecis)}</td>
+          <td>${esc(x.repChauffage)}</td>
+          <td>${esc(x.projet)}</td>
+          <td>${esc(x.projetPrecis)}</td>
+          <td>${esc(x.repProjet)}</td>
+          <td>${esc(x.rappel)}</td>
+          <td>${esc(x.rdv)}</td>
+          <td>${esc(x.repRappel)}</td>
+          <td><span class="tag ${statusClass(x.statut)}">${esc(x.statut)}</span></td>
+          <td>${esc(x.agent)}</td>
+          <td>${esc(x.code)}</td>
+          <td>${esc(x.source)}</td>
+          <td>${esc(x.objection)}</td>
+          <td>${esc(x.commentaire)}</td>
+          <td>${esc(x.notes)}</td>
+          <td>${esc(formatTs(x.updatedAt))}</td>
+          <td>${esc(x.updatedBy)}</td>
+          <td>
+            <div class="toolbar">
+              <button class="btn cyan small" data-edit="${esc(x.id)}">Modifier</button>
+              <button class="btn red small" data-del="${esc(x.id)}">Supprimer</button>
+            </div>
+          </td>
+        </tr>
+      `).join("");
+
+      tb.querySelectorAll("[data-edit]").forEach(btn=>{
+        btn.onclick = ()=>{
+          const id = btn.getAttribute("data-edit");
+          const row = ALL.find(r => r.id === id);
+          if(!row) return;
+          EDIT_ID = id;
+          fillForm(row);
+          $("btnDeleteOne").classList.remove("hidden");
+          $("formSection").scrollIntoView({behavior:"smooth"});
+          toast("Mode modification");
+        };
+      });
+
+      tb.querySelectorAll("[data-del]").forEach(btn=>{
+        btn.onclick = async ()=>{
+          if(!requireAdmin()) return;
+          const id = btn.getAttribute("data-del");
+          if(!confirm("Supprimer cette fiche ?")) return;
+
+          try{
+            await deleteDoc(doc(db, COL_NAME, id));
+            toast("Fiche supprimée");
+          }catch(e){
+            console.error(e);
+            toast("Erreur suppression");
+          }
+        };
+      });
+    }
+
+    function applyFiltersAndRender(){
+      renderRows(getFiltered());
+      updatePills();
+    }
+
+    $("btnApply").onclick = applyFiltersAndRender;
+
+    $("btnResetFilters").onclick = ()=>{
+      $("fltStatut").value = "";
+      $("fltAgent").value = "";
+      $("fltFrom").value = "";
+      $("fltTo").value = "";
+      $("fltQ").value = "";
+      $("fltLimit").value = "200";
+      applyFiltersAndRender();
+    };
+
+    $("cbAll").addEventListener("change", ()=>{
+      document.querySelectorAll(".rowCheck").forEach(cb => cb.checked = $("cbAll").checked);
+    });
+
+    function selectedIds(){
+      return [...document.querySelectorAll(".rowCheck:checked")].map(cb => cb.dataset.id);
+    }
+
+    function rowsToExport(rows){
+      return rows.map(x => ({
+        Nom: x.nom || "",
+        Prénom: x.prenom || "",
+        Téléphone: x.tel || "",
+        Mobile: x.mobile || "",
+        Adresse: x.adresse || "",
+        "Réponse adresse": x.repAdresse || "",
+        Propriétaire: x.proprietaire || "",
+        "Réponse propriétaire": x.repProprietaire || "",
+        Maison: x.maison || "",
+        "Réponse maison": x.repMaison || "",
+        "Âge logement": x.ageLogement || "",
+        "Réponse âge": x.repAge || "",
+        Chauffage: x.chauffage || "",
+        "Précision chauffage": x.chauffagePrecis || "",
+        "Réponse chauffage": x.repChauffage || "",
+        Projet: x.projet || "",
+        "Précision projet": x.projetPrecis || "",
+        "Réponse projet": x.repProjet || "",
+        Rappel: x.rappel || "",
+        RDV: x.rdv || "",
+        "Réponse rappel": x.repRappel || "",
+        Statut: x.statut || "",
+        Agent: x.agent || "",
+        Code: x.code || "",
+        Source: x.source || "",
+        Objection: x.objection || "",
+        Commentaire: x.commentaire || "",
+        Notes: x.notes || "",
+        "Modifié le": formatTs(x.updatedAt) || "",
+        "Modifié par": x.updatedBy || ""
+      }));
+    }
+
+    function exportExcel(rows, filename){
+      if(!rows.length){
+        toast("Aucune donnée à exporter");
+        return;
+      }
+      const data = rowsToExport(rows);
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Leads");
+      XLSX.writeFile(wb, filename);
+    }
+
+    $("btnExportExcelAll").onclick = ()=> exportExcel(ALL, "crm_energie_tout.xlsx");
+    $("btnExportExcelFiltered").onclick = ()=> exportExcel(getFiltered(), "crm_energie_filtre.xlsx");
+    $("btnExportExcelSelected").onclick = ()=>{
+      const ids = selectedIds();
+      const rows = ALL.filter(x => ids.includes(x.id));
+      exportExcel(rows, "crm_energie_selection.xlsx");
+    };
+
+    $("btnDeleteSelected").onclick = async ()=>{
+      const ids = selectedIds();
+      if(!ids.length){
+        toast("Aucune fiche sélectionnée");
+        return;
+      }
+      if(!requireAdmin()) return;
+      if(!confirm(`Supprimer ${ids.length} fiche(s) ?`)) return;
+
+      try{
+        await Promise.all(ids.map(id => deleteDoc(doc(db, COL_NAME, id))));
+        toast("Sélection supprimée");
+      }catch(e){
+        console.error(e);
+        toast("Erreur suppression sélection");
+      }
+    };
+
+    $("btnDeleteAll").onclick = async ()=>{
+      if(!ALL.length){
+        toast("Aucune fiche à supprimer");
+        return;
+      }
+      if(!requireAdmin()) return;
+      if(!confirm("Confirmer la suppression totale de toutes les fiches ?")) return;
+
+      try{
+        const snap = await getDocs(colRef);
+        await Promise.all(snap.docs.map(d => deleteDoc(doc(db, COL_NAME, d.id))));
+        toast("Toutes les fiches ont été supprimées");
+      }catch(e){
+        console.error(e);
+        toast("Erreur suppression totale");
+      }
+    };
+
+    // FIREBASE REALTIME
+    $("firebaseMsg").textContent = "Firebase : connexion...";
+    const qAll = query(colRef, orderBy("updatedAt", "desc"));
+
+    onSnapshot(qAll, (snap)=>{
+      ALL = snap.docs.map(d => ({ id:d.id, ...d.data() }));
+      $("firebaseMsg").textContent = `Firebase : OK • collection ${COL_NAME} • ${ALL.length} fiche(s)`;
+      rebuildAgentFilter();
+      applyFiltersAndRender();
+    }, (err)=>{
+      console.error(err);
+      $("firebaseMsg").textContent = "Firebase : erreur de connexion ou droits Firestore.";
+    });
+
+    clearForm();
+  </script>
+</body>
+</html>

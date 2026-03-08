@@ -1,0 +1,820 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Reporting Vicidial — Énergie</title>
+
+<style>
+  :root{
+    --bg:#f4f7ff; --card:#fff; --text:#0b1220; --muted:rgba(11,18,32,.62);
+    --stroke:#dbe1f1; --shadow:0 10px 30px rgba(0,0,0,.10);
+    --blue:#0b57d0; --red:#e53935; --soft:#eef3ff; --green:#16a34a; --orange:#f59e0b;
+    --radius:14px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Arial,system-ui;background:var(--bg);color:var(--text)}
+  header{position:sticky;top:0;z-index:60;background:#fff;border-bottom:1px solid var(--stroke)}
+  .top{max-width:2000px;margin:auto;padding:10px 12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:space-between}
+  h1{margin:0;font-size:18px;color:var(--blue)}
+  .wrap{max-width:2000px;margin:auto;padding:12px}
+  .card{background:var(--card);border-radius:var(--radius);padding:12px;margin-bottom:12px;box-shadow:var(--shadow)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+  .big{font-size:22px;font-weight:900;color:var(--blue)}
+  .small{font-size:12px;color:#666}
+  .badge{display:inline-block;padding:4px 10px;border-radius:999px;background:var(--soft);color:var(--blue);font-weight:900;font-size:12px}
+  button{padding:8px 12px;border-radius:10px;border:none;font-weight:900;cursor:pointer}
+  .primary{background:var(--blue);color:#fff}
+  .danger{background:var(--red);color:#fff}
+  .soft{background:var(--soft);color:var(--blue)}
+  .ok{background:var(--green);color:#fff}
+  .warn{background:var(--orange);color:#fff}
+  input,select,textarea{padding:8px;border-radius:10px;border:1px solid #ccd4ea;width:100%}
+  textarea{min-height:72px;resize:vertical}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  th,td{border:1px solid #ccd4ea;padding:6px;white-space:nowrap;vertical-align:top}
+  th{background:#eef3ff}
+  .actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+  .row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px dashed #cbd5e1}
+  .row:last-child{border-bottom:none}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace}
+  .errbox{display:none;margin-top:8px;background:#fff2f2;border:1px solid #ffd2d2;color:#7a0b0b;padding:10px;border-radius:12px}
+  .stickybar{position:sticky;bottom:0;z-index:55;background:rgba(244,247,255,.95);backdrop-filter:blur(6px);border-top:1px solid var(--stroke);padding:10px}
+  .stickybar .actions{justify-content:space-between;align-items:center}
+  .modalBack{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;align-items:center;justify-content:center;z-index:100}
+  .modal{width:min(1100px,96vw);max-height:92vh;overflow:auto;background:#fff;border-radius:16px;box-shadow:0 20px 70px rgba(0,0,0,.25);padding:14px}
+  .modal h3{margin:0 0 10px 0}
+  .modal .grid{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+  .hint{color:#0b57d0;font-weight:900}
+  .sectionTitle{margin:0 0 8px 0;color:#12356b}
+</style>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+
+<body>
+<header>
+  <div class="top">
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <h1>📊 Reporting Vicidial — Énergie</h1>
+      <span class="badge">Collection : vicidial_reporting_energie</span>
+      <span id="filterBadge" class="badge" style="display:none"></span>
+    </div>
+    <div class="actions">
+      <button class="soft" onclick="exportExcel('all')">📥 Excel (tout)</button>
+      <button class="soft" onclick="exportExcel('filtered')">📥 Excel (filtré)</button>
+      <button class="danger" onclick="deleteAllRows()">🧨 Tout supprimer</button>
+      <button class="soft" onclick="location.href='index.html'">🏠 Retour</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="card">
+    <div class="grid">
+      <div><div class="small">Total appels</div><div id="sTotal" class="big">0</div></div>
+      <div><div class="small">Total SALE / SALES</div><div id="sSales" class="big">0</div></div>
+      <div><div class="small">Agents distincts</div><div id="sAgents" class="big">0</div></div>
+      <div><div class="small">Durée totale (sec)</div><div id="sDuration" class="big">0</div></div>
+      <div><div class="small">Durée moyenne</div><div id="sAvg" class="big">0</div></div>
+      <div><div class="small">Villes distinctes</div><div id="sCities" class="big">0</div></div>
+    </div>
+    <div id="firebaseMsg" class="small" style="margin-top:8px"></div>
+    <div id="err" class="errbox"></div>
+  </div>
+
+  <div class="card">
+    <h3 class="sectionTitle">Import Vicidial</h3>
+    <div class="grid" style="align-items:end">
+      <div>
+        <div class="small">Fichier TXT / CSV / TSV</div>
+        <input type="file" id="file" accept=".txt,.csv,.tsv">
+        <div class="small">
+          Colonnes reconnues :
+          <span class="mono">call_date, user, status, phone_number, length_in_sec, recording_location, comments</span>
+          +
+          <span class="mono">first_name, last_name, address, city, postal_code, mobile, code_given, rdv_datetime</span>
+        </div>
+      </div>
+      <div>
+        <button class="primary" onclick="importFile()">Valider l’import</button>
+        <div id="msg" class="small" style="margin-top:8px"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 class="sectionTitle">Filtres</h3>
+    <div class="grid">
+      <div>
+        <div class="small">Date appel de</div>
+        <input type="date" id="dFrom" />
+      </div>
+      <div>
+        <div class="small">Date appel à</div>
+        <input type="date" id="dTo" />
+      </div>
+      <div>
+        <div class="small">Agent</div>
+        <select id="fUser"><option value="">Tous</option></select>
+      </div>
+      <div>
+        <div class="small">Statut</div>
+        <select id="fStatus"><option value="">Tous</option></select>
+      </div>
+      <div>
+        <div class="small">Ville</div>
+        <select id="fCity"><option value="">Toutes</option></select>
+      </div>
+      <div>
+        <div class="small">Recherche</div>
+        <input id="q" placeholder="mobile, nom, prénom, comments, ville, code...">
+      </div>
+      <div>
+        <div class="small">Actions</div>
+        <div class="actions" style="justify-content:flex-start">
+          <button class="primary" onclick="applyFilters()">Appliquer</button>
+          <button class="soft" onclick="resetFilters()">Réinitialiser</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 class="sectionTitle">Pivots & statistiques</h3>
+    <div class="grid">
+      <div>
+        <div class="small">Par jour</div>
+        <table>
+          <thead><tr><th>Date</th><th>Appels</th><th>SALE</th><th>Durée</th><th>Taux</th></tr></thead>
+          <tbody id="pDay"></tbody>
+        </table>
+      </div>
+      <div>
+        <div class="small">Par agent</div>
+        <table>
+          <thead><tr><th>Agent</th><th>Appels</th><th>SALE</th><th>Durée</th><th>Taux</th><th>Moyenne</th></tr></thead>
+          <tbody id="pAgent"></tbody>
+        </table>
+      </div>
+      <div>
+        <div class="small">Par statut</div>
+        <table>
+          <thead><tr><th>Statut</th><th>Total</th></tr></thead>
+          <tbody id="pStatus"></tbody>
+        </table>
+      </div>
+      <div>
+        <div class="small">Par ville</div>
+        <table>
+          <thead><tr><th>Ville</th><th>Total</th></tr></thead>
+          <tbody id="pCity"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="actions" style="justify-content:space-between;align-items:center">
+      <div>
+        <b>Détails</b>
+        <div class="small">Affichage paginé pour Android.</div>
+      </div>
+      <div class="actions">
+        <span class="badge">Affichés : <span id="shown">0</span> / <span id="totalFiltered">0</span></span>
+        <button class="soft" onclick="exportExcel('filtered')">Excel filtré</button>
+        <button class="soft" onclick="exportCSV('filtered')">CSV filtré</button>
+      </div>
+    </div>
+
+    <div style="overflow:auto;margin-top:10px">
+      <table>
+        <thead>
+          <tr>
+            <th>Date appel</th>
+            <th>Agent</th>
+            <th>Statut</th>
+            <th>Téléphone</th>
+            <th>Mobile</th>
+            <th>Prénom</th>
+            <th>Nom</th>
+            <th>Adresse</th>
+            <th>Ville</th>
+            <th>Code postal</th>
+            <th>Code donné</th>
+            <th>Date RDV</th>
+            <th>Durée</th>
+            <th>Recording</th>
+            <th>Comments</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+
+    <div class="actions" style="margin-top:10px;justify-content:center">
+      <button class="primary" id="btnMore" onclick="showMore()">Afficher plus</button>
+    </div>
+  </div>
+</div>
+
+<div class="stickybar">
+  <div class="actions">
+    <div class="small"><span class="hint">VICIDIAL</span> Reporting énergie séparé des autres bases.</div>
+    <div class="actions">
+      <button class="soft" onclick="showTop()">⬆️ Haut</button>
+      <button class="ok" onclick="applyFilters()">✅ Recalcul</button>
+    </div>
+  </div>
+</div>
+
+<div class="modalBack" id="modalBack">
+  <div class="modal">
+    <div class="actions" style="justify-content:space-between;align-items:center">
+      <h3>✏️ Modifier ligne Vicidial</h3>
+      <button class="soft" onclick="closeModal()">✖ Fermer</button>
+    </div>
+
+    <div class="small">ID : <span id="mId" class="mono"></span></div>
+
+    <div class="grid" style="margin-top:10px">
+      <div><div class="small">Date appel</div><input id="mCallDate" /></div>
+      <div><div class="small">Agent</div><input id="mUser" /></div>
+      <div><div class="small">Statut</div><input id="mStatus" /></div>
+
+      <div><div class="small">Téléphone</div><input id="mPhone" /></div>
+      <div><div class="small">Mobile</div><input id="mMobile" /></div>
+      <div><div class="small">Prénom</div><input id="mFirst" /></div>
+
+      <div><div class="small">Nom</div><input id="mLast" /></div>
+      <div><div class="small">Adresse</div><input id="mAddress" /></div>
+      <div><div class="small">Ville</div><input id="mCity" /></div>
+
+      <div><div class="small">Code postal</div><input id="mPostal" /></div>
+      <div><div class="small">Code donné</div><input id="mCodeGiven" /></div>
+      <div><div class="small">Date RDV</div><input id="mRdv" type="datetime-local" /></div>
+
+      <div><div class="small">Durée (sec)</div><input id="mLen" type="number" /></div>
+      <div><div class="small">Recording location</div><input id="mRec" /></div>
+      <div style="grid-column:1/-1"><div class="small">Comments</div><textarea id="mComments"></textarea></div>
+    </div>
+
+    <div class="actions" style="margin-top:12px;justify-content:flex-start">
+      <button class="primary" onclick="saveEdit()">💾 Enregistrer</button>
+      <button class="danger" onclick="deleteRowFromModal()">🗑 Supprimer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyA-G8P5NokxI6ZaIOMroQrH4x8mp_Q2dgg",
+  authDomain:"axokit-crm-ecoles-e56ab.firebaseapp.com",
+  projectId:"axokit-crm-ecoles-e56ab"
+});
+const db = firebase.firestore();
+
+const CALLS = "vicidial_reporting_energie";
+const ADMIN_PASSWORD = "admin2026";
+
+let ALL = [];
+let FILTERED = [];
+let shownCount = 0;
+const PAGE_SIZE = 120;
+let editingId = null;
+
+const $ = (id)=>document.getElementById(id);
+
+function showError(msg){
+  const box = $("err");
+  box.style.display = "block";
+  box.textContent = msg;
+}
+function clearError(){
+  const box = $("err");
+  box.style.display = "none";
+  box.textContent = "";
+}
+function setFirebaseMsg(msg){
+  const el = $("firebaseMsg");
+  if(el) el.textContent = msg;
+}
+
+window.onerror = function(message, source, lineno){
+  showError("Erreur JS : " + message + " (ligne " + lineno + ")");
+  return true;
+};
+window.onunhandledrejection = function(e){
+  showError("Promise rejetée : " + (e && e.reason ? (e.reason.message || e.reason) : "inconnue"));
+};
+
+function safe(v){ return (v===undefined || v===null) ? "" : String(v); }
+function normStatus(s){ return safe(s).toUpperCase().trim(); }
+function isSale(s){ const st = normStatus(s); return st==="SALE" || st==="SALES"; }
+function dateKey(v){
+  const s = safe(v);
+  const m = s.match(/(\d{4})-(\d{2})-(\d{2})/);
+  return m ? `${m[1]}-${m[2]}-${m[3]}` : "";
+}
+function csvEscape(v){
+  const s = safe(v).replace(/\r?\n/g," ");
+  if(s.includes(";") || s.includes('"')) return `"${s.replace(/"/g,'""')}"`;
+  return s;
+}
+function uniqSorted(arr){
+  return [...new Set(arr.filter(Boolean))].sort((a,b)=>String(a).localeCompare(String(b)));
+}
+function askAdmin(){
+  const pass = prompt("Mot de passe Admin :");
+  if(pass !== ADMIN_PASSWORD){
+    alert("Mot de passe incorrect");
+    return false;
+  }
+  return true;
+}
+function detectSep(line){
+  if(line.includes("\t")) return "\t";
+  if(line.includes(";")) return ";";
+  return ",";
+}
+function splitLine(line, sep){
+  if(sep === "\t") return line.split("\t");
+  const out = [];
+  let cur = "", q = false;
+  for(let i=0;i<line.length;i++){
+    const c = line[i];
+    if(c === '"'){
+      if(q && line[i+1] === '"'){ cur += '"'; i++; }
+      else q = !q;
+    } else if(c === sep && !q){
+      out.push(cur); cur = "";
+    } else {
+      cur += c;
+    }
+  }
+  out.push(cur);
+  return out;
+}
+function objFromHeaders(headers, values){
+  const o = {};
+  headers.forEach((h,i)=>o[String(h).trim().toLowerCase()] = safe(values[i]).trim());
+  return o;
+}
+function pick(o, ...keys){
+  for(const k of keys){
+    const kk = String(k).trim().toLowerCase();
+    if(o[kk] !== undefined) return o[kk];
+  }
+  return "";
+}
+
+/* LIVE FIREBASE */
+function loadLive(){
+  clearError();
+  setFirebaseMsg("Firebase : connexion...");
+  db.collection(CALLS).orderBy("createdAt","desc").limit(3000).onSnapshot(snap=>{
+    ALL = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    setFirebaseMsg(`Firebase : OK • ${CALLS} • ${ALL.length} ligne(s)`);
+    buildFilterOptions();
+    applyFilters();
+  }, err=>{
+    showError("Firestore Vicidial : " + err.message);
+    setFirebaseMsg("Firebase : erreur");
+  });
+}
+loadLive();
+
+/* IMPORT */
+window.importFile = async function(){
+  const file = $("file").files[0];
+  if(!file){
+    alert("Choisissez un fichier");
+    return;
+  }
+
+  $("msg").textContent = "Lecture du fichier...";
+  try{
+    const txt = await file.text();
+    const lines = txt.split(/\r?\n/).filter(x=>x.trim());
+    if(lines.length < 2){
+      $("msg").textContent = "Fichier vide ou incomplet.";
+      return;
+    }
+
+    const sep = detectSep(lines[0]);
+    const headers = splitLine(lines[0], sep).map(h=>h.trim());
+
+    let count = 0;
+    let batch = db.batch();
+    let inBatch = 0;
+
+    for(let i=1;i<lines.length;i++){
+      const vals = splitLine(lines[i], sep);
+      const row = objFromHeaders(headers, vals);
+
+      const payload = {
+        call_date: pick(row,"call_date","date_appel","date"),
+        user: pick(row,"user","agent"),
+        status: pick(row,"status","statut"),
+        phone_number: pick(row,"phone_number","phone","telephone","tel"),
+        mobile: pick(row,"mobile","portable"),
+        first_name: pick(row,"first_name","prenom","prénom"),
+        last_name: pick(row,"last_name","nom"),
+        address: pick(row,"address","adresse"),
+        city: pick(row,"city","ville"),
+        postal_code: pick(row,"postal_code","code_postal"),
+        code_given: pick(row,"code_given","code"),
+        rdv_datetime: pick(row,"rdv_datetime","date_rdv","rdv"),
+        call_length: Number(pick(row,"length_in_sec","call_length","duration","duree","durée") || 0),
+        recording_location: pick(row,"recording_location","recording","audio"),
+        comments: pick(row,"comments","commentaires","commentaire"),
+        sourceFile: file.name,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      };
+
+      const ref = db.collection(CALLS).doc();
+      batch.set(ref, payload);
+      inBatch++;
+      count++;
+
+      if(inBatch >= 300){
+        await batch.commit();
+        batch = db.batch();
+        inBatch = 0;
+      }
+    }
+
+    if(inBatch > 0) await batch.commit();
+    $("msg").textContent = `${count} ligne(s) importée(s)`;
+    $("file").value = "";
+  }catch(e){
+    console.error(e);
+    $("msg").textContent = "Erreur import : " + e.message;
+  }
+};
+
+/* FILTERS */
+function buildFilterOptions(){
+  const users = uniqSorted(ALL.map(r=>r.user));
+  const statuses = uniqSorted(ALL.map(r=>normStatus(r.status)));
+  const cities = uniqSorted(ALL.map(r=>r.city));
+
+  const curU = $("fUser").value;
+  const curS = $("fStatus").value;
+  const curC = $("fCity").value;
+
+  $("fUser").innerHTML = `<option value="">Tous</option>` + users.map(v=>`<option value="${safe(v).replaceAll('"','&quot;')}">${safe(v)}</option>`).join("");
+  $("fStatus").innerHTML = `<option value="">Tous</option>` + statuses.map(v=>`<option value="${safe(v).replaceAll('"','&quot;')}">${safe(v)}</option>`).join("");
+  $("fCity").innerHTML = `<option value="">Toutes</option>` + cities.map(v=>`<option value="${safe(v).replaceAll('"','&quot;')}">${safe(v)}</option>`).join("");
+
+  if(users.includes(curU)) $("fUser").value = curU;
+  if(statuses.includes(curS)) $("fStatus").value = curS;
+  if(cities.includes(curC)) $("fCity").value = curC;
+}
+
+window.resetFilters = function(){
+  $("dFrom").value = "";
+  $("dTo").value = "";
+  $("fUser").value = "";
+  $("fStatus").value = "";
+  $("fCity").value = "";
+  $("q").value = "";
+  applyFilters();
+};
+
+window.applyFilters = function(){
+  clearError();
+
+  const from = $("dFrom").value;
+  const to = $("dTo").value;
+  const user = $("fUser").value;
+  const status = $("fStatus").value;
+  const city = $("fCity").value;
+  const q = $("q").value.trim().toLowerCase();
+
+  FILTERED = ALL.filter(r=>{
+    const dk = dateKey(r.call_date);
+    if(from && dk && dk < from) return false;
+    if(to && dk && dk > to) return false;
+    if((from || to) && !dk) return false;
+
+    if(user && safe(r.user) !== user) return false;
+    if(status && normStatus(r.status) !== normStatus(status)) return false;
+    if(city && safe(r.city) !== city) return false;
+
+    if(q){
+      const hay = [
+        r.phone_number, r.mobile, r.first_name, r.last_name, r.address, r.city, r.postal_code,
+        r.comments, r.user, r.status, r.recording_location, r.code_given, r.rdv_datetime
+      ].map(safe).join(" ").toLowerCase();
+      if(!hay.includes(q)) return false;
+    }
+    return true;
+  });
+
+  const parts=[];
+  if(from) parts.push("De " + from);
+  if(to) parts.push("À " + to);
+  if(user) parts.push("Agent: " + user);
+  if(status) parts.push("Statut: " + status);
+  if(city) parts.push("Ville: " + city);
+  if(q) parts.push("Recherche: " + q);
+
+  if(parts.length){
+    $("filterBadge").style.display="inline-block";
+    $("filterBadge").textContent="Filtre: " + parts.join(" • ");
+  }else{
+    $("filterBadge").style.display="none";
+    $("filterBadge").textContent="";
+  }
+
+  $("tbody").innerHTML = "";
+  shownCount = 0;
+  $("totalFiltered").textContent = FILTERED.length;
+  $("shown").textContent = 0;
+  $("btnMore").disabled = false;
+  $("btnMore").textContent = "Afficher plus";
+
+  showMore();
+  renderStats();
+  renderPivots();
+};
+
+function renderStats(){
+  let sales = 0, duration = 0;
+  const agents = new Set();
+  const cities = new Set();
+
+  FILTERED.forEach(r=>{
+    if(isSale(r.status)) sales++;
+    duration += Number(r.call_length || 0);
+    if(r.user) agents.add(r.user);
+    if(r.city) cities.add(r.city);
+  });
+
+  $("sTotal").textContent = FILTERED.length;
+  $("sSales").textContent = sales;
+  $("sAgents").textContent = agents.size;
+  $("sDuration").textContent = duration;
+  $("sAvg").textContent = FILTERED.length ? Math.round(duration / FILTERED.length) : 0;
+  $("sCities").textContent = cities.size;
+}
+
+/* TABLE */
+window.showMore = function(){
+  const start = shownCount;
+  const end = Math.min(shownCount + PAGE_SIZE, FILTERED.length);
+
+  if(start >= end){
+    $("btnMore").disabled = true;
+    $("btnMore").textContent = "Fin";
+    return;
+  }
+
+  const frag = document.createDocumentFragment();
+
+  for(let i=start; i<end; i++){
+    const r = FILTERED[i];
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${safe(r.call_date)}</td>
+      <td>${safe(r.user)}</td>
+      <td>${safe(normStatus(r.status))}</td>
+      <td>${safe(r.phone_number)}</td>
+      <td>${safe(r.mobile)}</td>
+      <td>${safe(r.first_name)}</td>
+      <td>${safe(r.last_name)}</td>
+      <td>${safe(r.address)}</td>
+      <td>${safe(r.city)}</td>
+      <td>${safe(r.postal_code)}</td>
+      <td>${safe(r.code_given)}</td>
+      <td>${safe(r.rdv_datetime)}</td>
+      <td>${safe(r.call_length)}</td>
+      <td>${safe(r.recording_location) ? `<a href="${safe(r.recording_location)}" target="_blank" rel="noopener">ouvrir</a>` : ""}</td>
+      <td>${safe(r.comments)}</td>
+      <td class="actions">
+        <button class="soft" onclick="openEdit('${r.id}')">✏️ Modifier</button>
+        <button class="danger" onclick="deleteRow('${r.id}')">🗑</button>
+      </td>
+    `;
+    frag.appendChild(tr);
+  }
+
+  $("tbody").appendChild(frag);
+  shownCount = end;
+  $("shown").textContent = shownCount;
+
+  if(shownCount >= FILTERED.length){
+    $("btnMore").disabled = true;
+    $("btnMore").textContent = "Fin";
+  }
+};
+
+window.showTop = function(){
+  window.scrollTo({top:0, behavior:"smooth"});
+};
+
+/* PIVOTS */
+function renderPivots(){
+  const byDay = {}, byAgent = {}, byStatus = {}, byCity = {};
+
+  FILTERED.forEach(r=>{
+    const day = dateKey(r.call_date) || "Sans date";
+    const agent = safe(r.user) || "Non renseigné";
+    const status = normStatus(r.status) || "Non renseigné";
+    const city = safe(r.city) || "Non renseignée";
+    const dur = Number(r.call_length || 0);
+
+    if(!byDay[day]) byDay[day] = { total:0, sales:0, dur:0 };
+    byDay[day].total++;
+    byDay[day].dur += dur;
+    if(isSale(status)) byDay[day].sales++;
+
+    if(!byAgent[agent]) byAgent[agent] = { total:0, sales:0, dur:0 };
+    byAgent[agent].total++;
+    byAgent[agent].dur += dur;
+    if(isSale(status)) byAgent[agent].sales++;
+
+    byStatus[status] = (byStatus[status] || 0) + 1;
+    byCity[city] = (byCity[city] || 0) + 1;
+  });
+
+  $("pDay").innerHTML = Object.entries(byDay).sort((a,b)=>String(a[0]).localeCompare(String(b[0]))).map(([k,v])=>{
+    const taux = v.total ? Math.round((v.sales / v.total) * 100) : 0;
+    return `<tr><td>${k}</td><td>${v.total}</td><td>${v.sales}</td><td>${v.dur}</td><td>${taux}%</td></tr>`;
+  }).join("") || `<tr><td colspan="5">Aucune donnée</td></tr>`;
+
+  $("pAgent").innerHTML = Object.entries(byAgent).sort((a,b)=>String(a[0]).localeCompare(String(b[0]))).map(([k,v])=>{
+    const taux = v.total ? Math.round((v.sales / v.total) * 100) : 0;
+    const avg = v.total ? Math.round(v.dur / v.total) : 0;
+    return `<tr><td>${k}</td><td>${v.total}</td><td>${v.sales}</td><td>${v.dur}</td><td>${taux}%</td><td>${avg}</td></tr>`;
+  }).join("") || `<tr><td colspan="6">Aucune donnée</td></tr>`;
+
+  $("pStatus").innerHTML = Object.entries(byStatus).sort((a,b)=>b[1]-a[1]).map(([k,v]) =>
+    `<tr><td>${k}</td><td>${v}</td></tr>`
+  ).join("") || `<tr><td colspan="2">Aucune donnée</td></tr>`;
+
+  $("pCity").innerHTML = Object.entries(byCity).sort((a,b)=>b[1]-a[1]).map(([k,v]) =>
+    `<tr><td>${k}</td><td>${v}</td></tr>`
+  ).join("") || `<tr><td colspan="2">Aucune donnée</td></tr>`;
+}
+
+/* EXPORT */
+function rowsToExport(rows){
+  return rows.map(r => ({
+    "Date appel": safe(r.call_date),
+    Agent: safe(r.user),
+    Statut: safe(r.status),
+    Téléphone: safe(r.phone_number),
+    Mobile: safe(r.mobile),
+    Prénom: safe(r.first_name),
+    Nom: safe(r.last_name),
+    Adresse: safe(r.address),
+    Ville: safe(r.city),
+    "Code postal": safe(r.postal_code),
+    "Code donné": safe(r.code_given),
+    "Date RDV": safe(r.rdv_datetime),
+    "Durée sec": safe(r.call_length),
+    "Recording location": safe(r.recording_location),
+    Comments: safe(r.comments)
+  }));
+}
+
+window.exportExcel = function(mode){
+  const rows = mode === "filtered" ? FILTERED : ALL;
+  if(!rows.length){
+    alert("Aucune donnée à exporter");
+    return;
+  }
+  const ws = XLSX.utils.json_to_sheet(rowsToExport(rows));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Vicidial");
+  XLSX.writeFile(wb, mode === "filtered" ? "vicidial_filtre.xlsx" : "vicidial_tout.xlsx");
+};
+
+window.exportCSV = function(mode){
+  const rows = mode === "filtered" ? FILTERED : ALL;
+  if(!rows.length){
+    alert("Aucune donnée à exporter");
+    return;
+  }
+  const data = rowsToExport(rows);
+  const headers = Object.keys(data[0]);
+  const lines = [headers.map(csvEscape).join(";")];
+  data.forEach(row => lines.push(headers.map(h => csvEscape(row[h])).join(";")));
+  const blob = new Blob(["\uFEFF" + lines.join("\n")], {type:"text/csv;charset=utf-8;"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = mode === "filtered" ? "vicidial_filtre.csv" : "vicidial_tout.csv";
+  a.click();
+};
+
+/* EDIT */
+window.openEdit = function(id){
+  const row = ALL.find(x=>x.id===id);
+  if(!row) return;
+
+  editingId = id;
+  $("mId").textContent = id;
+  $("mCallDate").value = safe(row.call_date);
+  $("mUser").value = safe(row.user);
+  $("mStatus").value = safe(row.status);
+  $("mPhone").value = safe(row.phone_number);
+  $("mMobile").value = safe(row.mobile);
+  $("mFirst").value = safe(row.first_name);
+  $("mLast").value = safe(row.last_name);
+  $("mAddress").value = safe(row.address);
+  $("mCity").value = safe(row.city);
+  $("mPostal").value = safe(row.postal_code);
+  $("mCodeGiven").value = safe(row.code_given);
+  $("mRdv").value = safe(row.rdv_datetime);
+  $("mLen").value = safe(row.call_length);
+  $("mRec").value = safe(row.recording_location);
+  $("mComments").value = safe(row.comments);
+
+  $("modalBack").style.display = "flex";
+};
+
+window.closeModal = function(){
+  $("modalBack").style.display = "none";
+  editingId = null;
+};
+
+window.saveEdit = async function(){
+  if(!editingId) return;
+  try{
+    await db.collection(CALLS).doc(editingId).update({
+      call_date: $("mCallDate").value.trim(),
+      user: $("mUser").value.trim(),
+      status: $("mStatus").value.trim(),
+      phone_number: $("mPhone").value.trim(),
+      mobile: $("mMobile").value.trim(),
+      first_name: $("mFirst").value.trim(),
+      last_name: $("mLast").value.trim(),
+      address: $("mAddress").value.trim(),
+      city: $("mCity").value.trim(),
+      postal_code: $("mPostal").value.trim(),
+      code_given: $("mCodeGiven").value.trim(),
+      rdv_datetime: $("mRdv").value,
+      call_length: Number($("mLen").value || 0),
+      recording_location: $("mRec").value.trim(),
+      comments: $("mComments").value.trim(),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    closeModal();
+    alert("Modification enregistrée");
+  }catch(e){
+    alert("Erreur modification : " + e.message);
+  }
+};
+
+window.deleteRow = async function(id){
+  if(!askAdmin()) return;
+  if(!confirm("Supprimer cette ligne ?")) return;
+  try{
+    await db.collection(CALLS).doc(id).delete();
+    alert("Ligne supprimée");
+  }catch(e){
+    alert("Erreur suppression : " + e.message);
+  }
+};
+
+window.deleteRowFromModal = async function(){
+  if(!editingId) return;
+  if(!askAdmin()) return;
+  if(!confirm("Supprimer cette ligne ?")) return;
+  try{
+    await db.collection(CALLS).doc(editingId).delete();
+    closeModal();
+    alert("Ligne supprimée");
+  }catch(e){
+    alert("Erreur suppression : " + e.message);
+  }
+};
+
+window.deleteAllRows = async function(){
+  if(!askAdmin()) return;
+  if(!confirm("Confirmer la suppression de toute la base Vicidial énergie ?")) return;
+  try{
+    const snap = await db.collection(CALLS).get();
+    const batchSize = 300;
+    let docs = snap.docs.slice();
+
+    while(docs.length){
+      const batch = db.batch();
+      docs.splice(0, batchSize).forEach(d => batch.delete(d.ref));
+      await batch.commit();
+    }
+    alert("Toute la base Vicidial énergie a été supprimée");
+  }catch(e){
+    alert("Erreur suppression totale : " + e.message);
+  }
+};
+</script>
+</body>
+</html>
